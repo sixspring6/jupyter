@@ -41,7 +41,7 @@ consolidation_1 = pd.DataFrame(data_1)
 consolidation_1['환율'] = consolidation_1['환율'].astype(float)
 consolidation_1 = consolidation_1.reset_index()
 
-
+#검토
 
 
 
