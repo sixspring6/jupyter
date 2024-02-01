@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 
-
-
-=======
->>>>>>> b6f02b0e521accf8e8639f7cfeeac1e9a28ff282
 import win32com.client
 import xlwings as xw
 import pandas as pd
@@ -42,7 +37,7 @@ consolidation_1['환율'] = consolidation_1['환율'].astype(float)
 consolidation_1 = consolidation_1.reset_index()
 
 
-
+#별도 통합프손을 통합.xlsx로 다운
 wb = xw.Book('C:/연결프로젝트손익명세/통합.xlsx')
 sht=wb.sheets[0]
        #파일명어떻게 할지 
