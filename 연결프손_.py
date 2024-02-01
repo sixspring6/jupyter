@@ -29,22 +29,17 @@ data_1 = {
 
 
 
-
+#통합실행 ikan 등 변수 묶음
 consolidation = pd.DataFrame(data)
 
 consolidation['지분율'] = consolidation['지분율'].astype(float)
 consolidation['환율'] = consolidation['환율'].astype(float)
 consolidation = consolidation.reset_index()
-
-
 consolidation_1 = pd.DataFrame(data_1)
 
-
+#통합실행 라인 등 변수묶음
 consolidation_1['환율'] = consolidation_1['환율'].astype(float)
 consolidation_1 = consolidation_1.reset_index()
-
-#검토
-
 
 
 
