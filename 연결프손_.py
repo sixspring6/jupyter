@@ -42,7 +42,7 @@ wb = xw.Book('C:/연결프로젝트손익명세/통합.xlsx')
 sht=wb.sheets[0]
        #파일명어떻게 할지 
 통합실행 = sht.range('a1:cg1000').options(pd.DataFrame,Header=1,index=False).value
-print("파일 로딩을 시작합니다")
+print("별도 통합실행을 통합.xlsx 파일로 불러들였습니다")
 wb.close()
 
 
@@ -53,6 +53,10 @@ wb.close()
 통합실행['예정원가율'] = 통합실행['예정원가율']/100
 
 통합실행['예정원가율(KRW)'] = 통합실행['예정원가율(KRW)']/100
+
+print("별도 통합실행을 통합.xlsx 파일 가공을 완료했습니다.")
+
+
 
 
 
@@ -105,7 +109,10 @@ wb = xw.Book('C:/연결프로젝트손익명세/작업파일1.xlsx')
 
 print("작업파일1을 불러들였습니다.")
 
-sheet_name = 'new'   #new 시트 없애기
+sheet_name='new'   #new 시트 없애기
+
+
+
 
 import pythoncom
 
@@ -122,17 +129,12 @@ except (KeyError, pythoncom.com_error):
 
 
 
-
-
-
     
     
 
 
-
+print("손익명세 파일 가공을 시작합니다.")
 손익명세 = 손익명세.rename(columns={'프로젝트코드':'손익센터'})
-
-
 
 손익명세.drop(['원가분석(KRW)','매출분석(KRW)','고객명','Project프로파일','상태','계약명','고객명','국내/해외','매출분석','원가분석','전표 번호','당기손익','주관','사업분야','통화'],axis=1,inplace=True)
 
@@ -145,8 +147,6 @@ except (KeyError, pythoncom.com_error):
 
 
 원화당기 = 원화당기.drop('통화', axis=1)
-
-
 
 원화당기['정리']= 원화당기['당기매출'].abs()+원화당기['당기원가'].abs()
 원화당기 = 원화당기.drop(원화당기[원화당기['정리'] <= 0].index)
@@ -163,16 +163,18 @@ except (KeyError, pythoncom.com_error):
 
 
 
-원화당기.to_excel('c:/연결프로젝트손익명세/작성.xlsx',sheet_name='pot_table')
+원화당기.to_excel('c:/연결프로젝트손익명세/check_current_krw.xlsx',sheet_name='pot_table')
 
-현지화당기.to_excel('c:/연결프로젝트손익명세/작성1.xlsx',sheet_name='pot_table')
+현지화당기.to_excel('c:/연결프로젝트손익명세/check_current_local.xlsx',sheet_name='pot_table')
 
-현지화전기.to_excel('c:/연결프로젝트손익명세/작성3.xlsx',sheet_name='pot_table')
+현지화전기.to_excel('c:/연결프로젝트손익명세/check_previous_local.xlsx',sheet_name='pot_table')
 
-원화전기.to_excel('c:/연결프로젝트손익명세/작성2.xlsx',sheet_name='pot_table')
+원화전기.to_excel('c:/연결프로젝트손익명세/check_previous_krw.xlsx',sheet_name='pot_table')
+print("check 파일로 손익센터별 매출원가를 저장 했습니다.")
 
 
-원화전기 =원화전기.rename(columns={'당기원가':'전기원가'})
+
+원화전기 = 원화전기.rename(columns={'당기원가':'전기원가'})
 원화전기 = 원화전기.rename(columns={'당기매출':'전기매출'})
 원화전기 = 원화전기.rename(columns={'당기손익':'전기손익'})
 원화전기 = 원화전기.rename(columns={'하자보수충당부채전입액':'전기 하자보수충당부채전입액'})
