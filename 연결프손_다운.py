@@ -92,6 +92,8 @@ sheet.clear_contents()
 wb.close()
 app.quit()
 
+print("작업파일을 비웠습니다.")
+
 
 
 
@@ -99,22 +101,48 @@ app.quit()
 import os
 
 folder_path = 'c:/연결프로젝트손익명세'  # 파일이 있는 폴더 경로
-search_string = '당기'  # 포함된 문자열
+search_string = '원화당기'  # 포함된 문자열
 
 for filename in os.listdir(folder_path):
     if search_string in filename:
         file_path = os.path.join(folder_path, filename)
         os.remove(file_path)
         print(f"파일 {file_path}를 삭제했습니다.")
+
+
+
+
+folder_path = 'c:/연결프로젝트손익명세'  # 파일이 있는 폴더 경로
+search_string = '현지화당기'  # 포함된 문자열
+
+for filename in os.listdir(folder_path):
+    if search_string in filename:
+        file_path = os.path.join(folder_path, filename)
+        os.remove(file_path)
+        print(f"파일 {file_path}를 삭제했습니다.")
+
+
         
 folder_path = 'c:/연결프로젝트손익명세'  # 파일이 있는 폴더 경로
-search_string = '전기'  # 포함된 문자열
+search_string = '원화전기'  # 포함된 문자열
 
 for filename in os.listdir(folder_path):
     if search_string in filename:
         file_path = os.path.join(folder_path, filename)
         os.remove(file_path)
         print(f"파일 {file_path}를 삭제했습니다.")
+
+
+folder_path = 'c:/연결프로젝트손익명세'  # 파일이 있는 폴더 경로
+search_string = '현지화전기'  # 포함된 문자열
+
+for filename in os.listdir(folder_path):
+    if search_string in filename:
+        file_path = os.path.join(folder_path, filename)
+        os.remove(file_path)
+        print(f"파일 {file_path}를 삭제했습니다.")
+
+
         
 folder_path = 'c:/연결프로젝트손익명세'  # 파일이 있는 폴더 경로
 search_string = '통합'  # 포함된 문자열
