@@ -53,7 +53,6 @@ root.destroy()
 app = xw.App(visible=False)
 wb = xw.Book('C:/연결프로젝트손익명세/작업파일1.xlsx')
 sht=wb.sheets['sheet1']
-#        #파일명어떻게 할지 
 df = sht.range('a1').options(pd.DataFrame,expand='table',Header=1,index=False).value
 
 손익명세 = df['종료일'].iloc[0]
