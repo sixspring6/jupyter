@@ -55,7 +55,9 @@ wb = xw.Book('C:/연결프로젝트손익명세/작업파일1.xlsx')
 sht=wb.sheets['sheet1']
 df = sht.range('a1').options(pd.DataFrame,expand='table',Header=1,index=False).value
 
-손익명세 = df['종료일'].iloc[0]
+
+#종료일을 인식합니다.
+손익명세 = df['종료일'].iloc[1]
 
 # Excel 파일 열기
 
