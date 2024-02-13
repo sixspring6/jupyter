@@ -6,7 +6,7 @@ import numpy as np
 
 
 
-#연결대상 취합
+#연결대상 취합 data 라는 딕셔너리
 data = {
     '주요pjt': ['AAID1902', 'TAAPL2101','TAOUS2201','TANUS2201'],
     '종속pjt': ['TAAID2101', 'AAPL2101','AOUS2201','ANUS2201'],
@@ -14,7 +14,7 @@ data = {
     '환율': ['0.0868', '308.46','1344.8','1344.8'],}
 
 
-
+#합산연결대상취합 data_1 이라는 딕셔너리
 
 data_1 = {
     '주요pjt': ['AAID2102'],
@@ -26,21 +26,20 @@ data_1 = {
 
 #통합실행 ikan 등 변수 묶음
 consolidation = pd.DataFrame(data)
-
 consolidation['지분율'] = consolidation['지분율'].astype(float)
 consolidation['환율'] = consolidation['환율'].astype(float)
 consolidation = consolidation.reset_index()
-consolidation_1 = pd.DataFrame(data_1)
 
-#통합실행 라인 등 변수묶음
+#합산실행 변수 묶음
+consolidation_1 = pd.DataFrame(data_1)
 consolidation_1['환율'] = consolidation_1['환율'].astype(float)
 consolidation_1 = consolidation_1.reset_index()
 
 
-#별도 통합프손을 통합.xlsx로 다운
+#별도 통합프손을 통합.xlsx로 read
 wb = xw.Book('C:/연결프로젝트손익명세/통합.xlsx')
 sht=wb.sheets[0]
-       #파일명어떻게 할지 
+
 통합실행 = sht.range('a1:cg1000').options(pd.DataFrame,Header=1,index=False).value
 print("별도 통합실행을 통합.xlsx 파일로 불러들였습니다")
 wb.close()
