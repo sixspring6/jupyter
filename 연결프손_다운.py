@@ -187,7 +187,7 @@ for index, row in df.iterrows():
     var3 = row['구분']
 
 
-
+   
     session.findById("wnd[0]").maximize
     session.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/shell").selectedNode = "F00100"
     session.findById("wnd[0]/tbar[0]/okcd").text = "ZHFIGLR3040"
@@ -311,23 +311,23 @@ session.findById("wnd[0]").sendVKey (3)
 
 #별도통합손익명세 다운
 
-# session.findById("wnd[0]").maximize
-# session.findById("wnd[0]/tbar[0]/okcd").text = "ZUFIUMR0460"
-# session.findById("wnd[0]").sendVKey (0)
-# session.findById("wnd[0]/usr/ctxtPA_PERVV").text = 손익명세
-# session.findById("wnd[0]/usr/ctxtPA_PERVV").caretPosition = 7
-# session.findById("wnd[0]").sendVKey (8)
-# session.findById("wnd[1]").sendVKey (0)
-# session.findById("wnd[0]/shellcont/shell/shellcont[1]/shell").pressToolbarContextButton ("&MB_EXPORT")
-# session.findById("wnd[0]/shellcont/shell/shellcont[1]/shell").selectContextMenuItem ("&XXL")
-# session.findById("wnd[1]/tbar[0]/btn[0]").press()
-# session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\연결프로젝트손익명세"
-# session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "통합.XLSX"
-# session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 2
-# session.findById("wnd[1]").sendVKey (0)
-# # session.findById("wnd[0]/shellcont/shell/shellcont[1]/shell").setCurrentCell 1,""
-# session.findById("wnd[0]").sendVKey (3)
-# session.findById("wnd[0]").sendVKey (3)
+session.findById("wnd[0]").maximize
+session.findById("wnd[0]/tbar[0]/okcd").text = "ZUFIUMR0460"
+session.findById("wnd[0]").sendVKey (0)
+session.findById("wnd[0]/usr/ctxtPA_PERVV").text = 손익명세
+session.findById("wnd[0]/usr/ctxtPA_PERVV").caretPosition = 7
+session.findById("wnd[0]").sendVKey (8)
+session.findById("wnd[1]").sendVKey (0)
+session.findById("wnd[0]/shellcont/shell/shellcont[1]/shell").pressToolbarContextButton ("&MB_EXPORT")
+session.findById("wnd[0]/shellcont/shell/shellcont[1]/shell").selectContextMenuItem ("&XXL")
+session.findById("wnd[1]/tbar[0]/btn[0]").press()
+session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\연결프로젝트손익명세"
+session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "통합.XLSX"
+session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 2
+session.findById("wnd[1]").sendVKey (0)
+session.findById("wnd[0]/shellcont/shell/shellcont[1]/shell").setCurrentCell 1,""
+session.findById("wnd[0]").sendVKey (3)
+session.findById("wnd[0]").sendVKey (3)
 
 
 session.findById("wnd[0]").maximize
