@@ -1,0 +1,14 @@
+SELECT
+  sab.*,
+  coa.acc_name AS acc_name2,
+  ROUND(date_diff('day', sab.posting_date, sab.inquiry_date) / 30.0, 1) AS aging,
+  CASE
+    WHEN ROUND(date_diff('day', sab.posting_date, sab.inquiry_date) / 30.0, 1) > 36 THEN sab.gc_bal
+    ELSE NULL
+  END AS month_36
+FROM
+  s_accounting_balance sab
+LEFT JOIN
+  b_accounting_coa coa
+ON
+  CAST(sab.acc_num AS VARCHAR) = CAST(coa.acc_num AS VARCHAR);
