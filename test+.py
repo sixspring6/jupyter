@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import seaborn as sns
 from sklearn.ensemble import IsolationForest
+import plotly.express as px
+import plotly.graph_objects as go
+
 
 # 페이지 설정
 st.set_page_config(layout="wide")
@@ -17,7 +20,7 @@ font_name = fm.FontProperties(fname=font_path).get_name()
 plt.rc('font', family=font_name)
 
 # Streamlit 앱 설정
-st.title('재무 분석 도구')
+st.title('Financial Analysis - Accounting Team')
 
 # 기본 메뉴 추가
 menu_options = ['기성미수금', '미청구', '선급금', '매입채무', '선수금', '초과청구']
@@ -38,13 +41,12 @@ if st.sidebar.button('AI 분석'):
 connection = connect(
     host='trino.hec.co.kr', port=443, http_scheme='https',
     user='0900051', auth=BasicAuthentication('0900051', 'Hec!@345'),
-    catalog='dw', schema='fie'
-)
+    catalog='dw', schema='fie')
 cursor = connection.cursor()
 
 # 선택한 페이지에 따라 다른 내용을 표시
 if st.session_state.page is None:
-    st.write("왼쪽 메뉴에서 옵션을 선택하세요.")
+    st.write("왼쪽 화면에서 메뉴를 선택하세요.")
 
 elif st.session_state.page == 'account statement_menu':
     st.subheader("Account Statement Menu")
@@ -74,18 +76,21 @@ elif st.session_state.page == 'account statement':
     st.subheader(f"Account Statement - {selected_option}")
 
     # 공통 사용자 입력 받기
-    end_date_prior = st.date_input("Enter the prior period end date", value=pd.to_datetime('2022-12-31'))
-    end_date_current = st.date_input("Enter the current period end date", value=pd.to_datetime('2023-12-31'))
-    include_acc_name = st.checkbox("Include acc_name in Grouping", value=False)  # 기본값 변경
+    end_date_prior = st.date_input("Enter the prior period end date", value=pd.to_datetime('2023-12-31'))
+    end_date_current = st.date_input("Enter the current period end date", value=pd.to_datetime('2024-05-31'))
 
     # 날짜를 문자열로 변환
     end_date_prior_str = end_date_prior.strftime('%Y-%m-%d')
     end_date_current_str = end_date_current.strftime('%Y-%m-%d')
 
-    # distinct sector 값 가져오기
-    cursor.execute("SELECT DISTINCT sector FROM s_accounting_project")
+
+    cursor.execute("""
+        SELECT DISTINCT COALESCE(p.sector, '비어있음') AS sector
+        FROM s_accounting_ledger l
+        LEFT JOIN s_accounting_project p ON l.profit_center = p.profit_center
+    """)
     sectors = cursor.fetchall()
-    sector_options = [sector[0] if sector[0] is not None else "비어있음" for sector in sectors]
+    sector_options = [sector[0] for sector in sectors]
 
     # 세션 상태에 selected_sectors가 없다면 모든 섹터를 선택된 상태로 초기화
     if 'selected_sectors' not in st.session_state:
@@ -102,17 +107,34 @@ elif st.session_state.page == 'account statement':
 
     # 선택된 sector를 쿼리 조건에 추가
     if selected_sectors:
-        sector_filter = "AND p.sector IN ({})".format(", ".join(["'{}'".format(sector) for sector in selected_sectors]))
+        sector_filter = "AND COALESCE(p.sector, '비어있음') IN ({})".format(", ".join(["'{}'".format(sector) for sector in selected_sectors]))
     else:
         sector_filter = ""
 
-    # acc_name을 포함할지 결정하는 부분
-    group_by_fields = "l.profit_center, l.profit_center_name, p.sector"
-    select_fields = "l.profit_center, l.profit_center_name, p.sector"
 
-    if include_acc_name:
-        group_by_fields = "l.profit_center, l.acc_name, l.profit_center_name, p.sector"
-        select_fields = "l.profit_center, l.acc_name, l.profit_center_name, p.sector"
+    group_by_fields = "l.profit_center,l.co_code, l.acc_name, l.profit_center_name, p.sector, l.client_vendor_name" 
+    select_fields = "p.sector,l.co_code, l.profit_center, l.acc_name,l.client_vendor_name, l.profit_center_name"
+
+
+
+
+    exclude_acc_name = st.checkbox('계정과목 / 거래처 분류 제외')
+
+    if exclude_acc_name:
+        group_by_fields = "l.profit_center,l.co_code, l.profit_center_name, p.sector "
+        select_fields = "p.sector,l.co_code, l.profit_center, l.profit_center_name"
+
+
+
+
+
+
+
+
+
+
+
+
 
     # 각 항목에 대한 쿼리 정의
     queries = {
@@ -120,45 +142,45 @@ elif st.session_state.page == 'account statement':
             SELECT
               {select_fields},
               SUM(CASE 
-                  WHEN l.inquiry_date = DATE '{end_date_prior_str}' THEN 
+                  WHEN l.posting_date <=  DATE '{end_date_prior_str}' THEN 
                       CASE 
-                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc_bal
-                          ELSE l.gc_bal 
+                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc
+                          ELSE l.gc
                       END 
                   ELSE 0 
               END) AS prior_period,
               SUM(CASE 
-                  WHEN l.inquiry_date = DATE '{end_date_current_str}' THEN 
+                  WHEN l.posting_date <=  DATE '{end_date_current_str}' THEN 
                       CASE 
-                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc_bal
-                          ELSE l.gc_bal 
+                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc
+                          ELSE l.gc
                       END 
                   ELSE 0 
               END) AS current_period,
               SUM(CASE 
-                  WHEN l.inquiry_date = DATE '{end_date_current_str}' THEN 
+                  WHEN l.posting_date <= DATE '{end_date_current_str}' THEN 
                       CASE 
-                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc_bal
-                          ELSE l.gc_bal 
+                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc
+                          ELSE l.gc
                       END 
                   ELSE 0 
               END) - 
               SUM(CASE 
-                  WHEN l.inquiry_date = DATE '{end_date_prior_str}' THEN 
+                  WHEN l.posting_date <=  DATE '{end_date_prior_str}' THEN 
                       CASE 
-                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc_bal
-                          ELSE l.gc_bal 
+                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc
+                          ELSE l.gc
                       END 
                   ELSE 0 
               END) AS difference
             FROM
-              s_accounting_balance l
+              s_accounting_ledger l
             LEFT JOIN
               s_accounting_project p
             ON
               l.profit_center = p.profit_center
             WHERE
-              CAST(l.acc_num AS VARCHAR) BETWEEN '11530110' AND '11530140'
+              CAST(l.acc_num AS VARCHAR) BETWEEN '11530110' AND '11530199'
               {sector_filter}
             GROUP BY
               {group_by_fields}
@@ -224,9 +246,7 @@ elif st.session_state.page == 'account statement':
               SUM(CASE 
                   WHEN l.posting_date <= DATE '{end_date_current_str}' THEN 
                       CASE 
-                          WHEN CAST(l.acc_num AS VARCHAR)
-
- LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc
+                          WHEN CAST(l.acc_num AS VARCHAR) LIKE '2%' OR CAST(l.acc_num AS VARCHAR) LIKE '3%' THEN -l.gc
                       ELSE l.gc 
                       END 
                   ELSE 0 
@@ -413,6 +433,16 @@ elif st.session_state.page == 'account statement':
         color = 'red' if val < 0 else 'black'
         return f'color: {color};'
 
+
+
+
+
+
+    # 쿼리 실행 및 결과 가져오기
+     # 쿼리 실행 및 결과 가져오기
+# 쿼리 실행 및 결과 가져오기
+# 쿼리 실행 및 결과 가져오기
+# 쿼리 실행 및 결과 가져오기
     # 쿼리 실행 및 결과 가져오기
     if st.button('Run Query'):
         cursor.execute(ledger_query)
@@ -426,31 +456,72 @@ elif st.session_state.page == 'account statement':
         numeric_columns = ['prior_period', 'current_period', 'difference']
         df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
 
-        # 숫자 형식 지정
-        df_style = df.style.applymap(format_numbers, subset=numeric_columns).format("{:,.0f}", subset=numeric_columns)
+        # 모든 숫자 열이 0인 행을 제거
+        df = df[~(df[numeric_columns] == 0).all(axis=1)]
+
+        # current_period 기준으로 내림차순 정렬
+        df = df.sort_values(by='current_period', ascending=False)
+
+        # 조건부 서식 추가 (가로 막대 스타일)
+        df_style = df.style.bar(subset=['current_period'], color='#d65f5f')\
+                        .format("{:,.0f}", subset=numeric_columns)
+
+
+
 
         # 합계 계산
         summary = df[numeric_columns].sum().rename('Total')
         df_summary = pd.DataFrame(summary).transpose()
+        
 
-        # 데이터프레임 및 합계 출력
+        # 1차 테이블 df_style
         st.dataframe(df_style, height=800, width=2000)  # 기본 크기를 더 넓힘
+
+        # 2차 테이블 df_summary
         st.write(df_summary.style.format("{:,.0f}"))
 
-        # 상위 20개 profit_center의 값을 막대그래프로 표시
-        top_20 = df.nlargest(20, 'current_period')
+        # 3차용 작업
 
-        fig, ax = plt.subplots(figsize=(12, 8))
+        df = df.drop(columns=['sector', 'client_vendor_name', 'acc_name'], errors='ignore')
+        df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
+        df = df.groupby(['profit_center','profit_center_name'])[numeric_columns].sum().reset_index()
+        df = df.sort_values(by='current_period', ascending=False)
+
+        df['profit_center_full'] = df['profit_center_name'] + "-" + df['profit_center']
+
+
+ 
+        # 전체 profit_center의 값을 가로 막대 그래프로 표시 df 
+        fig = go.Figure()
 
         # 현재 기간과 이전 기간 값을 다른 색상으로 표시
-        top_20.plot(kind='bar', x='profit_center_name', y='current_period', ax=ax, color='blue', position=1, width=0.4, label='당기')
-        top_20.plot(kind='bar', x='profit_center_name', y='prior_period', ax=ax, color='orange', position=0, width=0.4, label='전기')
+        fig.add_trace(go.Bar(
+            y=df['profit_center_full'],
+            x=df['current_period'],
+            name='당기',
+            orientation='h',
+            marker=dict(color='skyblue')))
 
-        ax.set_title('상위 20개 프로젝트')
-        ax.set_ylabel('Amount')
-        ax.legend()
+        fig.add_trace(go.Bar(
+            y=df['profit_center_full'],
+            x=df['prior_period'],
+            name='전기',
+            orientation='h',
+            marker=dict(color='lightcoral')     ))
 
-        st.pyplot(fig)
+        fig.update_layout(
+            barmode='group',
+            bargap=0.1,  # 막대 사이의 간격을 줄여 막대를 두껍게 만듦
+            bargroupgap=0.3,  # 그룹 사이의 간격을 줄여 막대를 두껍게 만듦
+            height=600 + len(df) * 20,  # 전체 그래프의 높이를 조정
+            title='프로젝트별 금액(당기금액 순서)',
+            xaxis_title='Amount',
+            yaxis_title='Profit Center',
+            yaxis=dict(autorange="reversed"),
+            xaxis=dict(tickformat=',d')
+        )
+
+        st.plotly_chart(fig)
 
         # 엑셀 파일로 저장 버튼
         if st.button('Save to Excel'):
@@ -458,10 +529,9 @@ elif st.session_state.page == 'account statement':
                 df.to_excel(writer, sheet_name='Data', index=False)
                 df_summary.to_excel(writer, sheet_name='Summary', index=False)
             st.success('Data saved to c:/xx.xlsx')
- 
 
 
-        
+
 
 elif st.session_state.page == 'monitoring':
     st.subheader("계정 모니터링 화면")
